@@ -28,6 +28,10 @@ if st:
     st.set_page_config(page_title=page_title, layout="centered")
     st.title(f"📍 {page_title}")
 
+    if "show_session_created" in st.session_state:
+        st.success(f"✅ New session created! Session Code: **{st.session_state['show_session_created']}**")
+        del st.session_state["show_session_created"]
+
     # --- Game Host or Join or View ---
     mode = st.radio("Select a mode:", ["Host", "Join", "Active Game"])
 
@@ -69,6 +73,8 @@ if st:
                         sessions[session_id]["players"][user] = choice
 
             st.session_state["last_session_id"] = session_id
+            st.session_state["show_session_created"] = session_id
+            st.rerun()  # Refresh to update the page title with the entered name
             st.rerun()  # Refresh to update the page title with the entered name
 
     if mode in ["Join", "Active Game"]:
