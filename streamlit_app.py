@@ -33,6 +33,10 @@ if st:
         del st.session_state["show_session_created"]
 
     # --- Game Host or Join or View ---
+    timezone = st.selectbox("Select your timezone:", ["UTC", "US/Eastern", "US/Central", "US/Mountain", "US/Pacific"], index=1)
+    import pytz
+    user_tz = pytz.timezone(timezone)
+
     mode = st.radio("Select a mode:", ["Host", "Join", "Active Game"])
 
     if mode == "Host":
@@ -43,14 +47,15 @@ if st:
 
         if st.button("Start Game") and target_name:
             session_id = str(uuid.uuid4())[:6]
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(pytz.utc).astimezone(user_tz)
             next_minute = ((now.minute // interval) + 1) * interval
             if next_minute >= 60:
                 start_time = (now + datetime.timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
             else:
                 start_time = now.replace(minute=0, second=0, microsecond=0) + datetime.timedelta(minutes=next_minute)
 
-            block_count = int(((datetime.datetime.combine(start_time.date(), datetime.time(23, 59)) - start_time).seconds) / (interval * 60))
+            end_of_day = datetime.datetime.combine(start_time.date(), datetime.time(23, 59), tzinfo=start_time.tzinfo)
+            block_count = int(((end_of_day - start_time).seconds) / (interval * 60))
             blocks = [start_time + datetime.timedelta(minutes=i * interval) for i in range(block_count)]
             block_labels = [f"{b.strftime('%I:%M %p')} - {(b + datetime.timedelta(minutes=interval)).strftime('%I:%M %p')}" for b in blocks] + ["They never show up"]
 
@@ -93,7 +98,7 @@ if st:
             start_time = game["start_time"]
             blocks = game["blocks"]
             block_labels = game["block_labels"]
-            now = datetime.datetime.now()
+            now = datetime.datetime.now(datetime.timezone.utc).astimezone()
 
             if mode == "Join":
                 st.subheader("👋 Join the Game")
@@ -158,6 +163,7 @@ if st:
                 st.write(f"Start Time: {start_time.strftime('%I:%M %p')} | Session Code: **{session_id}**")
 
                 st.subheader("Leaderboard & Status")
+                st.caption(f"Current Time: {now.strftime('%I:%M %p %Z')}")
                 arrival_time = game["arrival_time"]
                 players = game["players"]
 
