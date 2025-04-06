@@ -159,6 +159,30 @@ if st:
 
             if mode == "Active Game":
                 st.subheader("📊 Game Leaderboard")
+
+                button_label = f"📍 {game['target_name']} Arrived!" if game.get('target_name') else "📍 They Arrived!"
+                if st.button(button_label):
+                    game["arrival_time"] = datetime.datetime.now(pytz.utc).astimezone(user_tz)
+                    arrival_time = game["arrival_time"]
+                    st.success(f"{game['target_name']} arrived at {arrival_time.strftime('%I:%M %p')}!")
+
+                    winner_found = False
+                    for i, b in enumerate(blocks):
+                        block_end = b + datetime.timedelta(minutes=interval)
+                        if b <= arrival_time < block_end:
+                            winning_block = block_labels[i]
+                            winners = [user for user, choice in game["players"].items() if choice == winning_block]
+                            if winners:
+                                winner_found = True
+                                for winner in winners:
+                                    st.balloons()
+                                    st.success(f"🎉 Winner: {winner} with the time block {winning_block}!")
+                            else:
+                                st.info(f"Arrival was in the block {winning_block}, but no one picked it.")
+                            break
+
+                    if not winner_found:
+                        st.info("No winning guess. Either the block wasn't picked or arrival didn't match any window.")
                 st.write(f"Tracking **{game['target_name']}** | Interval: {interval} minutes")
                 st.write(f"Start Time: {start_time.strftime('%I:%M %p')} | Session Code: **{session_id}**")
 
