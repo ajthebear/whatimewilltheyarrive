@@ -135,7 +135,7 @@ if st:
 
                 button_label = f"📍 {game['target_name']} Arrived!" if game.get('target_name') else "📍 They Arrived!"
                 if st.button(button_label):
-                    game["arrival_time"] = datetime.datetime.now()
+                    game["arrival_time"] = datetime.datetime.now(pytz.utc).astimezone(user_tz)
                     arrival_time = game["arrival_time"]
                     st.success(f"{game['target_name']} arrived at {arrival_time.strftime('%I:%M %p')}!")
 
